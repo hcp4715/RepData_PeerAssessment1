@@ -1,16 +1,16 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
+title: "RepData_peerAssessment1_hcp"
 author: "Chuanpeng Hu"
 date: "Friday, November 13, 2015"
 output: html_document
-keep_md: true
 ---
 
 This is an R Markdown document for the peer assessment 1, reproducible research on coursera(https://class.coursera.org/repdata-034)
 
 
 ## Loading and preprocessing the data
-```{r loading and preprocessing}
+
+```r
 # clean memory
 rm(list=ls(all=TRUE))
 library(plyr)
@@ -18,73 +18,98 @@ library(ggplot2)
 #setwd("D:/videoCourse/Reproducible_research/Assignment1")
 
 repdata <- read.csv(file = "activity.csv", header = T)
-
 ```
 
 ## What is the mean total number of steps taken per day?
 
-```{r total # of steps per day}
 
+```r
 repdatasum <- ddply(repdata,.(date),summarise,steps = sum(steps,na.rm=TRUE))
 summary(repdatasum)
 ```
 
+```
+##          date        steps      
+##  2012-10-01: 1   Min.   :    0  
+##  2012-10-02: 1   1st Qu.: 6778  
+##  2012-10-03: 1   Median :10395  
+##  2012-10-04: 1   Mean   : 9354  
+##  2012-10-05: 1   3rd Qu.:12811  
+##  2012-10-06: 1   Max.   :21194  
+##  (Other)   :55
+```
+
 Here is the histogram of total number of steps tabken per day.
-```{r histogram, fig.height=4}
+
+```r
 hist(repdatasum$steps)
 ```
 
-```{r mean and medians of steps}
+![plot of chunk histogram](figure/histogram-1.png) 
+
+
+```r
 meanSteps <- mean(repdatasum$steps)
 medianSteps <-median(repdatasum$steps)
 ```
 
-The mean of the total steps taken by each day is `r meanSteps`;
-The median of the total steps tabken by each day is `r medianSteps`.
+The mean of the total steps taken by each day is 9354.2295082;
+The median of the total steps tabken by each day is 10395.
 
 ## What is the average daily activity pattern?
 
 Here is the time series plot of the 5-minutes interval x-axis and the average number of steps taken, averaged across all dayd (y-axis)
-```{r average daily activity pattern, fig.height=4}
 
+```r
 repdataSeries <- ddply(repdata,.(interval),summarise,steps = mean(steps,na.rm=TRUE))
 ggplot(repdataSeries,aes(interval,steps)) + geom_line() + xlab("") + ylab("Average steps")
+```
 
+![plot of chunk average daily activity pattern](figure/average daily activity pattern-1.png) 
+
+```r
 maxIndex <- which.max(repdataSeries$steps)
 maxInterval <- repdataSeries[maxIndex,1]
 ```
-The interval, onaverage across all the days in the dataset, contains the maximum number of steps is `r maxInterval`.
+The interval, onaverage across all the days in the dataset, contains the maximum number of steps is 835.
 
 
 ## Imputing missing values
 
-```{r count the NA}
+
+```r
 numNAs <- sum(is.na(repdata$steps)) # number of NA
-
 ```
-The total number of missing values in the dataset is `r numNAs`;
+The total number of missing values in the dataset is 2304;
 
-```{r impute NA}
+
+```r
 impute.mean <- function(x) replace(x, is.na(x), mean(x, na.rm = TRUE))
 repdatanew <- ddply(repdata,~interval,transform,steps = impute.mean(steps))
 ```
 
 Here is the histogram of new data.
-```{r histogram-new, fig.height=4}
+
+```r
 repdatasumnew <- ddply(repdatanew,.(date),summarise,steps = sum(steps,na.rm=TRUE))
 
 hist(repdatasumnew$steps)
+```
+
+![plot of chunk histogram-new](figure/histogram-new-1.png) 
+
+```r
 meanStepsnew <- mean(repdatasumnew$steps)
 medianStepsnew <-median(repdatasumnew$steps)
-
 ```
-The new mean of the total steps taken by each day is `r meanStepsnew`;
-The new median of the total steps tabken by each day is `r medianStepsnew`.
+The new mean of the total steps taken by each day is 1.0766189 &times; 10<sup>4</sup>;
+The new median of the total steps tabken by each day is 1.0766189 &times; 10<sup>4</sup>.
 
 The resutls showed that the mean and median of total steps per day is changed.
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r weekdays}
+
+```r
 multiplot <- function(..., plotlist=NULL, cols) {
     require(grid)
 
@@ -120,3 +145,5 @@ pweekday <- ggplot(subset(repdataSeriesnew,wday == "weekday"),aes(interval,steps
 pweekend <- ggplot(subset(repdataSeriesnew,wday == "weekend"),aes(interval,steps)) + geom_line() + xlab("") + ylab("Average steps")
 multiplot(pweekday,pweekend,cols=1)
 ```
+
+![plot of chunk weekdays](figure/weekdays-1.png) 
